@@ -21,6 +21,7 @@ python -m venv .venv
 python run_all.py --quick   # version reducida (k = 2, 3)
 python run_all.py           # completa (k = 2..7, 5-20 semillas); genera results/*.csv y *.png
 pytest                      # pruebas
+python demo.py --k 4 --n 100 --rho 0.5 --seed 1   # demo: compara los algoritmos en una instancia
 ```
 
 El notebook `notebooks/reproducir.ipynb` hace lo mismo y muestra las graficas.
