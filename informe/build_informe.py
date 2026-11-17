@@ -2,7 +2,8 @@
 
 El texto matematico (formalizacion, deduccion de T(n), reduccion desde Max
 Coverage, analisis de cotas) lo redacta el equipo en ``informe/texto/*.md``
-(subconjunto de Markdown: ``# `` y ``## `` para titulos, parrafos separados por
+(subconjunto de Markdown: ``# `` y ``## `` para titulos, ``- `` para vinetas,
+``> `` para una ecuacion centrada en su propia linea, parrafos separados por
 linea en blanco). Este script solo lo ensambla con las figuras y tablas reales
 generadas en ``results/``; no calcula ni inventa cifras.
 
@@ -15,6 +16,7 @@ from pathlib import Path
 
 import pandas as pd
 from docx import Document
+from docx.enum.text import WD_ALIGN_PARAGRAPH
 from docx.shared import Inches
 
 
@@ -34,6 +36,13 @@ def _add_markdown(doc: Document, text: str) -> None:
         elif s.startswith("# "):
             flush()
             doc.add_heading(s[2:], level=1)
+        elif s.startswith("- "):
+            flush()
+            doc.add_paragraph(s[2:], style="List Bullet")
+        elif s.startswith("> "):
+            flush()
+            eq = doc.add_paragraph(s[2:])
+            eq.alignment = WD_ALIGN_PARAGRAPH.CENTER
         elif not s:
             flush()
         else:
