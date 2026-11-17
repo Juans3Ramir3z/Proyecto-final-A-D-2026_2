@@ -26,7 +26,7 @@ from .common import SearchResult
 from .simulator import N_CATEGORIES, Simulator
 
 
-def backtracking(sim: Simulator, prune: bool = True) -> SearchResult:
+def backtracking(sim: Simulator, prune: bool = True, check_optimum: bool = False) -> SearchResult:
     p = sim.params
     start = sim.queries
     # union de coberturas de las categorias d..4
@@ -63,14 +63,12 @@ def backtracking(sim: Simulator, prune: bool = True) -> SearchResult:
 
     dfs(0, (), np.zeros(sim.cover.shape[2], dtype=bool))
     best = state["cfg"]
-    opt_acc = sim.optimum()[1]
-    return SearchResult(
-        best_config=best,
-        queries=sim.queries - start,
-        stats={
-            "nodes_visited": state["visited"],
-            "nodes_pruned": state["pruned"],
-            "leaves_evaluated": state["leaves"],
-            "found_optimum": bool(abs(sim.expected_accuracy(best) - opt_acc) < 1e-12),
-        },
-    )
+    queries = sim.queries - start
+    stats = {
+        "nodes_visited": state["visited"],
+        "nodes_pruned": state["pruned"],
+        "leaves_evaluated": state["leaves"],
+    }
+    if check_optimum:  # fuera del conteo de consultas (verdad exacta, sin costo)
+        stats["found_optimum"] = bool(abs(sim.expected_accuracy(best) - sim.optimum()[1]) < 1e-12)
+    return SearchResult(best, queries, stats)
