@@ -1,0 +1,19 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "promptopt"
+version = "0.1.0"
+requires-python = ">=3.10"
+dependencies = ["numpy", "pandas", "matplotlib", "python-docx"]
+
+[project.optional-dependencies]
+dev = ["pytest", "nbformat", "jupyter"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src", "."]
+testpaths = ["tests"]
