@@ -61,14 +61,7 @@ def _add_table(doc: Document, df: pd.DataFrame) -> None:
             cells[i].text = f"{v:.4g}" if isinstance(v, float) else str(v)
 
 
-def build_informe(results_dir: Path, text_dir: Path, out_path: Path) -> None:
-    results_dir, text_dir, out_path = Path(results_dir), Path(text_dir), Path(out_path)
-    doc = Document()
-    doc.add_heading("Optimizacion de configuraciones de prompt bajo presupuesto de consultas", level=0)
-    doc.add_paragraph("Proyecto semestral 2026-2 - Analisis y Diseno de Algoritmos")
-    for md in sorted(text_dir.glob("*.md")):
-        _add_markdown(doc, md.read_text(encoding="utf-8"))
-    doc.add_heading("Validacion experimental", level=1)
+def _add_results(doc: Document, results_dir: Path) -> None:
     csv = results_dir / "counts_time.csv"
     if csv.exists():
         df = pd.read_csv(csv)
@@ -78,6 +71,33 @@ def build_informe(results_dir: Path, text_dir: Path, out_path: Path) -> None:
     for png in sorted(results_dir.glob("*.png")):
         doc.add_picture(str(png), width=Inches(5.5))
         doc.add_paragraph(png.stem.replace("_", " "))
+
+
+RESULTS_MARKER = "[[RESULTADOS]]"
+
+
+def build_informe(results_dir: Path, text_dir: Path, out_path: Path) -> None:
+    """Ensambla el .docx. Si algun texto contiene una linea ``[[RESULTADOS]]``,
+    la tabla y las figuras de results/ se insertan en ese punto; si no, se
+    anaden al final bajo el titulo "Validacion experimental"."""
+    results_dir, text_dir, out_path = Path(results_dir), Path(text_dir), Path(out_path)
+    doc = Document()
+    doc.add_heading("Optimizacion de configuraciones de prompt bajo presupuesto de consultas", level=0)
+    doc.add_paragraph("Proyecto semestral 2026-2 - Analisis y Diseno de Algoritmos")
+    placed = False
+    for md in sorted(text_dir.glob("*.md")):
+        text = md.read_text(encoding="utf-8")
+        if RESULTS_MARKER in text:
+            before, _, after = text.partition(RESULTS_MARKER)
+            _add_markdown(doc, before)
+            _add_results(doc, results_dir)
+            _add_markdown(doc, after)
+            placed = True
+        else:
+            _add_markdown(doc, text)
+    if not placed:
+        doc.add_heading("Validacion experimental", level=1)
+        _add_results(doc, results_dir)
     out_path.parent.mkdir(parents=True, exist_ok=True)
     doc.save(out_path)
 

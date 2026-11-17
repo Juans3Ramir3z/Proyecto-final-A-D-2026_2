@@ -31,3 +31,22 @@ def test_build_informe_embeds_figures(tmp_path):
     assert "Formalizacion" in headings
     assert "Validacion experimental" in headings
     assert len(doc.inline_shapes) == 2
+
+
+def test_marker_places_results_in_position(tmp_path):
+    res, txt = tmp_path / "results", tmp_path / "texto"
+    res.mkdir()
+    txt.mkdir()
+    fig, ax = plt.subplots()
+    ax.plot([0, 1])
+    fig.savefig(res / "a.png")
+    plt.close(fig)
+    (txt / "06.md").write_text("# Seis\nAntes.\n\n[[RESULTADOS]]\n\n# Siete\nDespues.", encoding="utf-8")
+    out = tmp_path / "i.docx"
+    build_informe(res, txt, out)
+    doc = Document(out)
+    heads = [p.text for p in doc.paragraphs if p.style.name.startswith("Heading")]
+    assert heads.count("Validacion experimental") == 0
+    body = [p._p for p in doc.paragraphs]
+    texts = [p.text for p in doc.paragraphs]
+    assert texts.index("Antes.") < texts.index("a") < texts.index("Despues.")
