@@ -26,7 +26,9 @@ from .common import SearchResult
 from .simulator import N_CATEGORIES, Simulator
 
 
-def backtracking(sim: Simulator, prune: bool = True, check_optimum: bool = False) -> SearchResult:
+def backtracking(
+    sim: Simulator, prune: bool = True, check_optimum: bool = False, trace=None
+) -> SearchResult:
     p = sim.params
     start = sim.queries
     # union de coberturas de las categorias d..4
@@ -48,6 +50,8 @@ def backtracking(sim: Simulator, prune: bool = True, check_optimum: bool = False
             value = sum(sim.query(cfg, i) for i in range(sim.N)) / sim.N
             if value > state["best"]:
                 state["best"], state["cfg"] = value, cfg
+            if trace:
+                trace({"event": "leaf", "cfg": cfg, "value": value, "best": state["best"]})
             return
         children = []
         for o in range(sim.k):
@@ -58,7 +62,13 @@ def backtracking(sim: Simulator, prune: bool = True, check_optimum: bool = False
         for ub, o, ccov in children:
             if prune and ub <= state["best"]:
                 state["pruned"] += 1
+                if trace:
+                    trace({"event": "prune", "depth": d + 1, "prefix": cfg + (o,),
+                           "ub": ub, "best": state["best"]})
                 continue
+            if trace and d + 1 < N_CATEGORIES:
+                trace({"event": "descend", "depth": d + 1, "prefix": cfg + (o,),
+                       "ub": ub, "best": state["best"]})
             dfs(d + 1, cfg + (o,), ccov)
 
     dfs(0, (), np.zeros(sim.cover.shape[2], dtype=bool))

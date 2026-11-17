@@ -8,12 +8,7 @@ from __future__ import annotations
 
 import argparse
 
-import numpy as np
-
-from promptopt.backtracking import backtracking
-from promptopt.budget import adaptive_allocation, uniform_allocation
-from promptopt.coordinate import coordinate_search
-from promptopt.halving import halving_cost, successive_halving
+from promptopt.runner import build_runs
 from promptopt.simulator import SimParams, Simulator
 
 
@@ -31,16 +26,7 @@ def main(argv=None):
     print(f"m = {sim.m} configuraciones, N = {sim.N} instancias, peor caso exacto m*N = {sim.m * sim.N}")
     print(f"Optimo verdadero: {opt_cfg}  precision esperada {opt_acc:.3f}\n")
 
-    B = a.budget_mult * sim.m
-    rng = lambda: np.random.default_rng(a.seed)
-    runs = [
-        ("Backtracking sin poda", lambda: backtracking(sim, prune=False)),
-        ("Backtracking con poda", lambda: backtracking(sim)),
-        ("Successive Halving", lambda: successive_halving(sim, 4 * halving_cost(sim.m, 1), rng())),
-        ("Coordinate Search", lambda: coordinate_search(sim, 20, 10, rng())),
-        ("Reparto uniforme", lambda: uniform_allocation(sim, B, rng())),
-        ("Reparto adaptativo", lambda: adaptive_allocation(sim, B, rng())),
-    ]
+    runs = build_runs(sim, a.seed, a.budget_mult)
     print(f"{'algoritmo':24}{'consultas':>10}  {'config elegida':16}{'precision':>10}{'regret':>8}")
     for name, fn in runs:
         sim.reset()

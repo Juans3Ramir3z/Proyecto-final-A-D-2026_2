@@ -33,3 +33,17 @@ def test_k1_single_config():
     res = backtracking(sim)
     assert res.best_config == (0, 0, 0, 0, 0)
     assert sim.queries == sim.N
+
+
+def test_trace_events_match_stats_and_do_not_change_result():
+    events = []
+    sim = make(3, rho=0.5)
+    traced = backtracking(sim, trace=events.append)
+    sim2 = make(3, rho=0.5)
+    plain = backtracking(sim2)
+    assert traced.best_config == plain.best_config and traced.queries == plain.queries
+    assert sum(e["event"] == "leaf" for e in events) == traced.stats["leaves_evaluated"]
+    assert sum(e["event"] == "prune" for e in events) == traced.stats["nodes_pruned"]
+    for e in events:
+        if e["event"] == "prune":
+            assert e["ub"] <= e["best"]
