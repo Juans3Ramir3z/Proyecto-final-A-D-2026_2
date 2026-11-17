@@ -10,6 +10,9 @@ Modelo
 * Una consulta devuelve un Bernoulli con probabilidad ``p_hi`` si la
   instancia esta resuelta y ``p_lo`` si no (ruido del "LLM").
 
+Valores calibrados (Task 7): n_rules=20, P_OWN=0.3, P_CROSS=0.3 (a rho=0.8 Coordinate
+Search queda atrapado en ~60% de las semillas; a rho=0 el regret medio es ~0.002).
+
 Generacion de ``cover`` segun rho (interaccion entre instrucciones)
 -------------------------------------------------------------------
 La regla ``j`` tiene categoria duena ``j % 5``. Una opcion cubre cada regla de
@@ -27,7 +30,7 @@ from typing import Iterator
 import numpy as np
 
 N_CATEGORIES = 5
-P_OWN = 0.5
+P_OWN = 0.3
 P_CROSS = 0.3
 
 
@@ -39,7 +42,7 @@ class BudgetExceeded(Exception):
 class SimParams:
     k: int
     n_instances: int
-    n_rules: int = 12
+    n_rules: int = 20
     rho: float = 0.0
     p_hi: float = 0.95
     p_lo: float = 0.05

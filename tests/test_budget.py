@@ -25,13 +25,14 @@ def test_adaptive_never_exceeds_budget():
 
 
 def test_adaptive_spends_less_on_losers():
-    sim = make(seed=3, p_hi=1.0, p_lo=0.0)
-    B = 243 * 60
+    sim = make(k=2, seed=0, n_rules=6, p_hi=1.0, p_lo=0.0)
+    B = 32 * 600
     res = adaptive_allocation(sim, B, np.random.default_rng(0))
     cfgs = list(sim.all_configs())
     acc = [sim.expected_accuracy(c) for c in cfgs]
     q = res.stats["per_config_queries"]
     assert q[int(np.argmin(acc))] < q[int(np.argmax(acc))]
+    assert sim.queries <= B
 
 
 def test_small_budget_raises():
